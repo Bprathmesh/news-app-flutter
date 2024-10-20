@@ -21,6 +21,8 @@ class NewsProvider with ChangeNotifier {
       _articles.clear();
     }
 
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
@@ -38,6 +40,10 @@ class NewsProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> refreshNews() async {
+    await fetchNews(refresh: true);
   }
 
   void setCategory(String category) {

@@ -20,14 +20,22 @@ class NewsService {
 
     url += '&apiKey=$_apiKey';
 
-    final response = await http.get(Uri.parse(url));
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      final List<dynamic> articles = jsonData['articles'];
-      return articles.map((article) => NewsArticle.fromJson(article)).toList();
-    } else {
-      throw Exception('Failed to load news');
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final List<dynamic> articles = jsonData['articles'];
+        return articles.map((article) => NewsArticle.fromJson(article)).toList();
+      } else if (response.statusCode == 401) {
+        throw Exception('Invalid API key');
+      } else if (response.statusCode == 429) {
+        throw Exception('API rate limit exceeded');
+      } else {
+        throw Exception('Failed to load news: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
     }
   }
 }

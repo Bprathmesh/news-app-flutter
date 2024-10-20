@@ -12,6 +12,8 @@ import 'login_page.dart';
 import 'bookmarked_news_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -34,6 +36,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _refreshNews() async {
+    await Provider.of<NewsProvider>(context, listen: false).refreshNews();
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -41,17 +47,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('News App'),
+        title: const Text('News App'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.bookmark),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => BookmarkedNewsPage()),
-              );
-            },
-          ),
           IconButton(
             icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
@@ -59,11 +56,20 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.bookmark),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookmarkedNewsPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await authProvider.signOut();
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
           ),
@@ -77,25 +83,31 @@ class _HomePageState extends State<HomePage> {
             child: Consumer<NewsProvider>(
               builder: (context, newsProvider, child) {
                 if (newsProvider.articles.isEmpty && newsProvider.isLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (newsProvider.articles.isEmpty) {
-                  return Center(child: Text('No articles found'));
+                  return const Center(child: Text('No articles found'));
                 } else {
-                  return ListView.builder(
-                    controller: _scrollController,
-                    itemCount: newsProvider.articles.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index < newsProvider.articles.length) {
-                        return NewsListItem(
-                          article: newsProvider.articles[index],
-                          onTap: () => _navigateToDetailPage(newsProvider.articles[index]),
-                        );
-                      } else if (newsProvider.isLoading) {
-                        return Center(child: CircularProgressIndicator());
-                      } else {
-                        return SizedBox.shrink();
-                      }
-                    },
+                  return RefreshIndicator(
+                    onRefresh: _refreshNews,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: newsProvider.articles.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index < newsProvider.articles.length) {
+                          return NewsListItem(
+                            article: newsProvider.articles[index],
+                            onTap: () => _navigateToDetailPage(newsProvider.articles[index]),
+                          );
+                        } else if (newsProvider.isLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
                   );
                 }
               },
