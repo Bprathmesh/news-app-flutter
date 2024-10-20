@@ -4,7 +4,7 @@ import '../services/news_service.dart';
 
 class NewsProvider with ChangeNotifier {
   final NewsService _newsService = NewsService();
-  List<NewsArticle> _articles = [];
+  final List<NewsArticle> _articles = [];
   String _selectedCategory = '';
   String _searchQuery = '';
   bool _isLoading = false;

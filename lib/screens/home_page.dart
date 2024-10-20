@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
@@ -8,8 +10,11 @@ import '../widgets/news_list_item.dart';
 import '../widgets/category_filter.dart';
 import '../widgets/news_search_bar.dart';
 import 'login_page.dart';
+import 'bookmarked_news_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -38,14 +43,23 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('News App'),
+        title: const Text('News App'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.bookmark),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookmarkedNewsPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await authProvider.signOut();
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
           ),
@@ -59,9 +73,9 @@ class _HomePageState extends State<HomePage> {
             child: Consumer<NewsProvider>(
               builder: (context, newsProvider, child) {
                 if (newsProvider.articles.isEmpty && newsProvider.isLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (newsProvider.articles.isEmpty) {
-                  return Center(child: Text('No articles found'));
+                  return const Center(child: Text('No articles found'));
                 } else {
                   return ListView.builder(
                     controller: _scrollController,
@@ -73,9 +87,9 @@ class _HomePageState extends State<HomePage> {
                           onTap: () => _navigateToDetailPage(newsProvider.articles[index]),
                         );
                       } else if (newsProvider.isLoading) {
-                        return Center(child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
                       } else {
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       }
                     },
                   );

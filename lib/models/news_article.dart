@@ -7,6 +7,7 @@ class NewsArticle {
   final String author;
   final String publishedAt;
   final String source;
+  bool isBookmarked;
 
   NewsArticle({
     required this.title,
@@ -17,6 +18,7 @@ class NewsArticle {
     required this.author,
     required this.publishedAt,
     required this.source,
+    this.isBookmarked = false,
   });
 
   factory NewsArticle.fromJson(Map<String, dynamic> json) {
@@ -30,5 +32,19 @@ class NewsArticle {
       publishedAt: json['publishedAt'] ?? '',
       source: json['source']['name'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+      'url': url,
+      'urlToImage': urlToImage,
+      'content': content,
+      'author': author,
+      'publishedAt': publishedAt,
+      'source': source,
+      'isBookmarked': isBookmarked,
+    };
   }
 }
