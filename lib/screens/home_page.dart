@@ -1,9 +1,8 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/news_article.dart';
 import 'news_detail_page.dart';
 import '../widgets/news_list_item.dart';
@@ -13,8 +12,6 @@ import 'login_page.dart';
 import 'bookmarked_news_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -40,26 +37,33 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('News App'),
+        title: Text('News App'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bookmark),
+            icon: Icon(Icons.bookmark),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const BookmarkedNewsPage()),
+                MaterialPageRoute(builder: (context) => BookmarkedNewsPage()),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              themeProvider.toggleTheme();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
             onPressed: () async {
               await authProvider.signOut();
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
+                MaterialPageRoute(builder: (context) => LoginPage()),
               );
             },
           ),
@@ -73,9 +77,9 @@ class _HomePageState extends State<HomePage> {
             child: Consumer<NewsProvider>(
               builder: (context, newsProvider, child) {
                 if (newsProvider.articles.isEmpty && newsProvider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 } else if (newsProvider.articles.isEmpty) {
-                  return const Center(child: Text('No articles found'));
+                  return Center(child: Text('No articles found'));
                 } else {
                   return ListView.builder(
                     controller: _scrollController,
@@ -87,9 +91,9 @@ class _HomePageState extends State<HomePage> {
                           onTap: () => _navigateToDetailPage(newsProvider.articles[index]),
                         );
                       } else if (newsProvider.isLoading) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator());
                       } else {
-                        return const SizedBox.shrink();
+                        return SizedBox.shrink();
                       }
                     },
                   );
