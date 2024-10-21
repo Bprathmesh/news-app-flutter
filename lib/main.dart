@@ -6,12 +6,18 @@ import 'providers/auth_provider.dart';
 import 'providers/news_provider.dart';
 import 'providers/bookmark_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/login_page.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
+  
+  final pushNotificationService = PushNotificationService();
+  await pushNotificationService.initialize();
+
   runApp(
     MultiProvider(
       providers: [
@@ -19,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => BookmarkProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

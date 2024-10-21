@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
 import '../models/user_model.dart';
+import '../models/notification.dart' as app_notification;
+import '../services/push_notification_service.dart';
 
 class AdminPanelPage extends StatefulWidget {
   @override
@@ -12,11 +15,16 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _bodyController = TextEditingController();
+  final PushNotificationService _notificationService = PushNotificationService();
+
+  Map<String, dynamic> _analyticsData = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _notificationService.initialize();
+    _generateDummyAnalyticsData();
   }
 
   @override
@@ -25,6 +33,22 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
+  }
+
+  void _generateDummyAnalyticsData() {
+    final random = Random();
+    setState(() {
+      _analyticsData = {
+        'appInstanceId': 'dummy-instance-id-${random.nextInt(1000)}',
+        'userEngagement': random.nextInt(1000),
+        'activeUsers': random.nextInt(500),
+        'screenViews': random.nextInt(2000),
+        'totalUsers': random.nextInt(10000),
+        'averageSessionDuration': (random.nextDouble() * 10).toStringAsFixed(2),
+        'bounceRate': '${random.nextInt(100)}%',
+        'topCountries': ['USA', 'India', 'UK', 'Canada', 'Australia'],
+      };
+    });
   }
 
   @override
@@ -84,8 +108,32 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
   }
 
   Widget _buildAnalyticsReport() {
-    // Implement your analytics report here
-    return Center(child: Text('Analytics Report'));
+    return ListView(
+      padding: EdgeInsets.all(16),
+      children: [
+        _buildAnalyticsTile('App Instance ID', _analyticsData['appInstanceId'].toString()),
+        _buildAnalyticsTile('User Engagement', _analyticsData['userEngagement'].toString()),
+        _buildAnalyticsTile('Active Users', _analyticsData['activeUsers'].toString()),
+        _buildAnalyticsTile('Screen Views', _analyticsData['screenViews'].toString()),
+        _buildAnalyticsTile('Total Users', _analyticsData['totalUsers'].toString()),
+        _buildAnalyticsTile('Avg. Session Duration', '${_analyticsData['averageSessionDuration']} minutes'),
+        _buildAnalyticsTile('Bounce Rate', _analyticsData['bounceRate'].toString()),
+        _buildAnalyticsTile('Top Countries', _analyticsData['topCountries'].join(', ')),
+        ElevatedButton(
+          onPressed: _generateDummyAnalyticsData,
+          child: Text('Refresh Analytics'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsTile(String title, String value) {
+    return Card(
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(value),
+      ),
+    );
   }
 
   Widget _buildNotificationSender() {
@@ -128,6 +176,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
         'title': _titleController.text,
         'body': _bodyController.text,
         'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
