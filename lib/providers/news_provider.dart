@@ -8,12 +8,14 @@ class NewsProvider with ChangeNotifier {
   String _selectedCategory = '';
   String _searchQuery = '';
   bool _isLoading = false;
+  String? _error;
   int _currentPage = 1;
 
   List<NewsArticle> get articles => _articles;
   String get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   Future<void> fetchNews({bool refresh = false}) async {
     if (refresh) {
@@ -24,6 +26,7 @@ class NewsProvider with ChangeNotifier {
     if (_isLoading) return;
 
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
@@ -35,7 +38,8 @@ class NewsProvider with ChangeNotifier {
       _articles.addAll(newArticles);
       _currentPage++;
     } catch (e) {
-      print('Error fetching news: $e');
+      _error = e.toString();
+      print('Error fetching news: $_error');
     } finally {
       _isLoading = false;
       notifyListeners();

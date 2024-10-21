@@ -10,6 +10,7 @@ import '../widgets/category_filter.dart';
 import '../widgets/news_search_bar.dart';
 import 'login_page.dart';
 import 'bookmarked_news_page.dart';
+import 'admin_panel_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -40,6 +42,47 @@ class _HomePageState extends State<HomePage> {
     await Provider.of<NewsProvider>(context, listen: false).refreshNews();
   }
 
+  void _showAdminPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter Admin Password'),
+          content: TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: InputDecoration(hintText: "Password"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Submit'),
+              onPressed: () {
+                if (_passwordController.text == 'bhardwaj') {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AdminPanelPage()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Incorrect password')),
+                  );
+                }
+                _passwordController.clear();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -49,6 +92,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('News App'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.admin_panel_settings),
+            onPressed: _showAdminPasswordDialog,
+          ),
           IconButton(
             icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
@@ -82,7 +129,20 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Consumer<NewsProvider>(
               builder: (context, newsProvider, child) {
-                if (newsProvider.articles.isEmpty && newsProvider.isLoading) {
+                if (newsProvider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: ${newsProvider.error}'),
+                        ElevatedButton(
+                          onPressed: () => newsProvider.refreshNews(),
+                          child: Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (newsProvider.articles.isEmpty && newsProvider.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (newsProvider.articles.isEmpty) {
                   return const Center(child: Text('No articles found'));
@@ -130,6 +190,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }
